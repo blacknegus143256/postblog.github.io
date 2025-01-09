@@ -1,0 +1,43 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"iostream": "cpp",
+			"ostream": "cpp",
+     "*.ejs": "html"
+ },
+ "emmet.includeLanguages": {
+     "ejs": "html",
+ },
+ 
+	
+		"editor.fontVariations": false,
+		"editor.fontLigatures": true,
+		"editor.fontFamily": ""
+		,"html.format.templating": true,
+		"terminal.integrated.profiles.linux": {
+			"bash": {
+				"path": "bash",
+				"icon": "terminal-bash"
+			},
+			"zsh": {
+				"path": "zsh"
+			},
+			"fish": {
+				"path": "fish"
+			},
+			"tmux": {
+				"path": "tmux",
+				"icon": "terminal-tmux"
+			},
+			"pwsh": {
+				"path": "pwsh",
+				"icon": "terminal-powershell"
+			}
+		},
+	}
+}

@@ -1,0 +1,11 @@
+.post-image {
+    max-width: 300px; /* Sets a maximum width for the image */
+    height: auto; /* Keeps the aspect ratio intact */
+    border: 2px solid #ccc;
+    border-radius: 8px;
+}
+.image-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
