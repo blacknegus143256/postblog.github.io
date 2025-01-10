@@ -39,23 +39,7 @@
 
         <h2 class="mt-5">Your Posts</h2>
         <div id="user-posts-container">
-            <!-- Example static posts -->
-            <div class="card mb-3">
-                <div class="card-body">
-                    <h5 class="card-title">Sample Post Content 1</h5>
-                    <img src="/uploads/example1.jpg" class="img-fluid mt-2" alt="Example Image 1">
-                    <button class="btn btn-warning btn-sm" onclick="showEditForm(1, 'Sample Post Content 1')">Edit</button>
-                    <button class="btn btn-danger btn-sm" onclick="deletePost(1)">Delete</button>
-                </div>
-            </div>
-            <div class="card mb-3">
-                <div class="card-body">
-                    <h5 class="card-title">Sample Post Content 2</h5>
-                    <img src="/uploads/example2.jpg" class="img-fluid mt-2" alt="Example Image 2">
-                    <button class="btn btn-warning btn-sm" onclick="showEditForm(2, 'Sample Post Content 2')">Edit</button>
-                    <button class="btn btn-danger btn-sm" onclick="deletePost(2)">Delete</button>
-                </div>
-            </div>
+            <!-- Dynamic posts will be loaded here -->
         </div>
     </div>
 
@@ -72,40 +56,115 @@
                 <input type="file" id="edit-fileUpload" class="form-control">
             </div>
             <button type="button" class="btn btn-primary" onclick="submitEditPost()">Save Changes</button>
+            <button type="button" class="btn btn-secondary" onclick="cancelEdit()">Cancel</button>
         </form>
     </div>
 
     <script>
-        // Simulated dynamic behavior
         let currentEditPostId = null;
 
+        // Load user's posts dynamically from the server
+        function loadUserPosts() {
+            fetch('/posts/user') // Fetch posts for the logged-in user
+                .then(res => res.json())
+                .then(posts => {
+                    const container = document.getElementById('user-posts-container');
+                    container.innerHTML = ''; // Clear existing posts
+                    posts.forEach(post => {
+                        const postCard = `
+                            <div class="card mb-3" id="post-${post.id}">
+                                <div class="card-body">
+                                    <h5 class="card-title">${post.content}</h5>
+                                    ${post.image ? `<img src="${post.image}" class="img-fluid mt-2" alt="Post Image">` : ''}
+                                    <button class="btn btn-warning btn-sm" onclick="showEditForm(${post.id}, '${post.content}')">Edit</button>
+                                    <button class="btn btn-danger btn-sm" onclick="deletePost(${post.id})">Delete</button>
+                                </div>
+                            </div>
+                        `;
+                        container.innerHTML += postCard;
+                    });
+                })
+                .catch(err => console.error('Error loading posts:', err));
+        }
+
+        // Handle new post creation
+        document.getElementById('post-form').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const formData = new FormData(this);
+            fetch('/posts', {
+                method: 'POST',
+                body: formData,
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Post created successfully!');
+                    this.reset();
+                    loadUserPosts(); // Reload posts
+                } else {
+                    alert('Error creating post: ' + data.error);
+                }
+            })
+            .catch(err => console.error('Error:', err));
+        });
+
+        // Show edit post form
         function showEditForm(postId, content) {
             currentEditPostId = postId;
             document.getElementById('edit-content').value = content;
             document.getElementById('edit-post-form-container').style.display = 'block';
         }
 
+        // Cancel edit post
         function cancelEdit() {
             document.getElementById('edit-post-form-container').style.display = 'none';
             currentEditPostId = null;
         }
 
+        // Submit edited post
         function submitEditPost() {
-            alert(`Post ${currentEditPostId} has been edited with new content.`);
-            cancelEdit();
+            const editContent = document.getElementById('edit-content').value;
+            const editFile = document.getElementById('edit-fileUpload').files[0];
+            const formData = new FormData();
+            formData.append('content', editContent);
+            if (editFile) formData.append('fileUpload', editFile);
+
+            fetch(`/posts/${currentEditPostId}`, {
+                method: 'PUT',
+                body: formData,
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Post updated successfully!');
+                    cancelEdit();
+                    loadUserPosts(); // Reload posts
+                } else {
+                    alert('Error updating post: ' + data.error);
+                }
+            })
+            .catch(err => console.error('Error:', err));
         }
 
+        // Delete post
         function deletePost(postId) {
             if (confirm('Are you sure you want to delete this post?')) {
-                alert(`Post ${postId} has been deleted.`);
+                fetch(`/posts/${postId}`, { method: 'DELETE' })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('Post deleted successfully!');
+                            loadUserPosts(); // Reload posts
+                        } else {
+                            alert('Error deleting post: ' + data.error);
+                        }
+                    })
+                    .catch(err => console.error('Error:', err));
             }
         }
 
-        document.getElementById('post-form').addEventListener('submit', function (event) {
-            event.preventDefault();
-            alert('New post created!');
-            this.reset();
-        });
+        // Load posts when the page loads
+        document.addEventListener('DOMContentLoaded', loadUserPosts);
     </script>
 </body>
 </html>
